@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Zap, ArrowRight, TrendingUp, Users, Target } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, TrendingUp, Users, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,14 +57,8 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#3b82f6] to-[#06b6d4] shadow-[0_0_20px_rgba(59,130,246,0.4)]">
-              <Zap className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-lg font-bold text-white tracking-tight">Agenz</span>
-              <span className="ml-1 text-sm font-semibold text-[#3b82f6]">OS</span>
-            </div>
+          <div className="flex items-center">
+            <Image src="/logo.png" alt="Agenz OS" width={160} height={40} className="h-10 w-auto" />
           </div>
         </div>
 
@@ -141,11 +136,8 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-12 bg-[#0d0d0d]">
         <div className="w-full max-w-[400px] space-y-8">
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#06b6d4]">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-base font-bold text-white">Agenz OS</span>
+          <div className="flex items-center lg:hidden">
+            <Image src="/logo.png" alt="Agenz OS" width={120} height={32} className="h-8 w-auto" />
           </div>
 
           <div>

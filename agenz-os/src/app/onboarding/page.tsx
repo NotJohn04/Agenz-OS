@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -1184,13 +1185,8 @@ export default function OnboardingPage() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Top bar */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#06b6d4]">
-            <Zap className="h-4 w-4 text-white" />
-          </div>
-          <span className="text-sm font-bold text-foreground">
-            Agenz <span className="text-[#3b82f6]">OS</span>
-          </span>
+        <div className="flex items-center">
+          <Image src="/logo.png" alt="Agenz OS" width={120} height={32} className="h-8 w-auto" />
         </div>
 
         {/* Step dots */}

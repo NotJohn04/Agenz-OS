@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,6 @@ import {
   Users,
   Target,
   TrendingUp,
-  Zap,
   Bot,
   Phone,
   Globe,
@@ -204,21 +204,13 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
       {/* LOGO */}
       <div className="flex h-[64px] items-center justify-between px-4 border-b border-border">
         {!collapsed && (
-          <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#06b6d4]">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <span className="text-sm font-bold tracking-tight text-foreground">Agenz</span>
-              <span className="ml-1 text-xs font-medium text-[#3b82f6]">OS</span>
-            </div>
+          <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center">
+            <Image src="/logo.png" alt="Agenz OS" width={120} height={32} className="h-8 w-auto" />
           </Link>
         )}
         {collapsed && (
           <Link href={effectiveClient ? "/dashboard" : "/admin"} className="mx-auto">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#06b6d4]">
-              <Zap className="h-4 w-4 text-white" />
-            </div>
+            <Image src="/logo.png" alt="Agenz OS" width={32} height={32} className="h-8 w-8 object-contain" />
           </Link>
         )}
         <button
