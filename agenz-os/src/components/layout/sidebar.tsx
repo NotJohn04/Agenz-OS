@@ -205,13 +205,13 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
       <div className="flex h-[64px] items-center justify-between px-3 border-b border-border">
         {!collapsed ? (
           <>
-            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center gap-2.5 min-w-0">
-              <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
-                <Image src="/logo.png" alt="Agenz OS" width={36} height={36} className="h-7 w-7 object-contain" />
+            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+                <Image src="/logo.png" alt="Agenz OS" width={44} height={44} className="h-9 w-9 object-contain" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-[13px] font-extrabold tracking-[0.12em] text-foreground uppercase">AGENZ OS</span>
-                <span className="text-[9px] font-medium tracking-widest text-[#3b82f6] uppercase mt-0.5">Control Tower</span>
+                <span className="text-[16px] font-black tracking-[0.1em] text-foreground uppercase">AGENZ OS</span>
+                <span className="text-[9px] font-semibold tracking-widest text-[#3b82f6] uppercase mt-0.5">Control Tower</span>
               </div>
             </Link>
             <button
@@ -223,8 +223,8 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
           </>
         ) : (
           <div className="flex flex-col items-center gap-1 w-full">
-            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
-              <Image src="/logo.png" alt="Agenz OS" width={36} height={36} className="h-7 w-7 object-contain" />
+            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex h-11 w-11 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+              <Image src="/logo.png" alt="Agenz OS" width={44} height={44} className="h-9 w-9 object-contain" />
             </Link>
             <button
               onClick={() => onCollapse?.(!collapsed)}
