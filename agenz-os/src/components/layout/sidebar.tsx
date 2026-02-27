@@ -202,30 +202,38 @@ export function Sidebar({ collapsed = false, onCollapse }: SidebarProps) {
       )}
     >
       {/* LOGO */}
-      <div className="flex h-[64px] items-center justify-between px-4 border-b border-border">
-        {!collapsed && (
-          <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center">
-            <Image src="/logo.png" alt="Agenz OS" width={120} height={32} className="h-8 w-auto" />
-          </Link>
+      <div className="flex h-[64px] items-center justify-between px-3 border-b border-border">
+        {!collapsed ? (
+          <>
+            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex items-center gap-2.5 min-w-0">
+              <div className="flex-shrink-0 flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+                <Image src="/logo.png" alt="Agenz OS" width={36} height={36} className="h-7 w-7 object-contain" />
+              </div>
+              <div className="flex flex-col leading-none">
+                <span className="text-[13px] font-extrabold tracking-[0.12em] text-foreground uppercase">AGENZ OS</span>
+                <span className="text-[9px] font-medium tracking-widest text-[#3b82f6] uppercase mt-0.5">Control Tower</span>
+              </div>
+            </Link>
+            <button
+              onClick={() => onCollapse?.(!collapsed)}
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+          </>
+        ) : (
+          <div className="flex flex-col items-center gap-1 w-full">
+            <Link href={effectiveClient ? "/dashboard" : "/admin"} className="flex h-9 w-9 items-center justify-center rounded-xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+              <Image src="/logo.png" alt="Agenz OS" width={36} height={36} className="h-7 w-7 object-contain" />
+            </Link>
+            <button
+              onClick={() => onCollapse?.(!collapsed)}
+              className="flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <ChevronRight className="h-3 w-3" />
+            </button>
+          </div>
         )}
-        {collapsed && (
-          <Link href={effectiveClient ? "/dashboard" : "/admin"} className="mx-auto">
-            <Image src="/logo.png" alt="Agenz OS" width={32} height={32} className="h-8 w-8 object-contain" />
-          </Link>
-        )}
-        <button
-          onClick={() => onCollapse?.(!collapsed)}
-          className={cn(
-            "flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors",
-            collapsed && "mx-auto mt-0"
-          )}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronLeft className="h-3.5 w-3.5" />
-          )}
-        </button>
       </div>
 
       {/* NAV */}

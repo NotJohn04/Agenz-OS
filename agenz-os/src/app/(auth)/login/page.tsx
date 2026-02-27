@@ -57,8 +57,14 @@ export default function LoginPage() {
 
         <div className="relative z-10">
           {/* Logo */}
-          <div className="flex items-center">
-            <Image src="/logo.png" alt="Agenz OS" width={160} height={40} className="h-10 w-auto" />
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20 backdrop-blur-sm">
+              <Image src="/logo.png" alt="Agenz OS" width={40} height={40} className="h-8 w-8 object-contain" />
+            </div>
+            <div className="flex flex-col leading-none">
+              <span className="text-[15px] font-extrabold tracking-[0.12em] text-white uppercase">AGENZ OS</span>
+              <span className="text-[9px] font-semibold tracking-widest text-[#3b82f6] uppercase mt-0.5">AI-Powered Growth Engine</span>
+            </div>
           </div>
         </div>
 
@@ -136,8 +142,11 @@ export default function LoginPage() {
       <div className="flex flex-1 items-center justify-center px-6 py-12 lg:px-12 bg-[#0d0d0d]">
         <div className="w-full max-w-[400px] space-y-8">
           {/* Mobile logo */}
-          <div className="flex items-center lg:hidden">
-            <Image src="/logo.png" alt="Agenz OS" width={120} height={32} className="h-8 w-auto" />
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20">
+              <Image src="/logo.png" alt="Agenz OS" width={32} height={32} className="h-7 w-7 object-contain" />
+            </div>
+            <span className="text-sm font-extrabold tracking-[0.12em] text-white uppercase">AGENZ OS</span>
           </div>
 
           <div>
