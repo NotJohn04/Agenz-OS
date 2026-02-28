@@ -43,6 +43,9 @@ const breadcrumbMap: Record<string, string> = {
   "/settings": "Settings",
   "/conversations": "Conversations",
   "/channels": "Channels",
+  "/admin/reports": "Reports",
+  "/admin/proposals": "Proposals",
+  "/admin/invoices": "Invoices",
 };
 
 function getBreadcrumbs(pathname: string) {

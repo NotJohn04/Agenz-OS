@@ -31,6 +31,9 @@ import {
   Bell,
   Video,
   FileText,
+  FileBarChart2,
+  CreditCard,
+  FilePen,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -63,6 +66,9 @@ const adminNavigation: NavGroup[] = [
       { href: "/admin/upgrade", label: "Upgrade Flow", icon: ArrowUpCircle },
       { href: "/admin/gantt", label: "Gantt Chart", icon: GanttChartSquare },
       { href: "/admin/financial", label: "Financial", icon: DollarSign },
+      { href: "/admin/reports", label: "Reports", icon: FileBarChart2 },
+      { href: "/admin/proposals", label: "Proposals", icon: FilePen },
+      { href: "/admin/invoices", label: "Invoices", icon: CreditCard },
     ],
   },
   {
