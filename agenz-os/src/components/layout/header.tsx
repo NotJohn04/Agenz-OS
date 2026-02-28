@@ -41,6 +41,8 @@ const breadcrumbMap: Record<string, string> = {
   "/admin/gantt": "Gantt Chart",
   "/admin/financial": "Financial",
   "/settings": "Settings",
+  "/conversations": "Conversations",
+  "/channels": "Channels",
 };
 
 function getBreadcrumbs(pathname: string) {

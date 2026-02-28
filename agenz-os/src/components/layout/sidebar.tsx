@@ -11,6 +11,8 @@ import {
   Users,
   Target,
   TrendingUp,
+  MessageSquare,
+  Radio,
   Bot,
   Phone,
   Globe,
@@ -116,6 +118,7 @@ function buildClientNavigation(activeModules: ModuleType[]): NavGroup[] {
         { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
         { href: "/crm", label: "Pipeline", icon: KanbanSquare, badge: "12", badgeColor: "blue" },
         { href: "/crm/contacts", label: "Contacts", icon: Users },
+        { href: "/conversations", label: "Conversations", icon: MessageSquare, badge: "5", badgeColor: "red" },
         { href: "/notifications", label: "Notifications", icon: Bell, badge: "2", badgeColor: "red" },
       ],
     },
@@ -129,7 +132,10 @@ function buildClientNavigation(activeModules: ModuleType[]): NavGroup[] {
     },
     {
       group: "ACCOUNT",
-      items: [{ href: "/settings", label: "Settings", icon: Settings }],
+      items: [
+        { href: "/channels", label: "Channels", icon: Radio },
+        { href: "/settings", label: "Settings", icon: Settings },
+      ],
     },
   ];
 }
