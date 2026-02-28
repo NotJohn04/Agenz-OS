@@ -1,49 +1,75 @@
 "use client";
 
+import { useState } from "react";
 import { mockClients, mockFinancials } from "@/lib/mock-data";
 import { HEALTH_STATUS_CONFIG, PACKAGE_CONFIG } from "@/lib/constants";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from "recharts";
 import {
   Building2, Users, DollarSign, TrendingUp, AlertTriangle,
-  CheckCircle2, Clock, ArrowRight, BarChart3
+  CheckCircle2, Clock, ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DateRangePicker, makeRange, type DateRange } from "@/components/ui/date-range-picker";
 
-const packageDistribution = [
-  { name: "Advanced", value: 1, color: "#8b5cf6" },
-  { name: "Intermediate", value: 2, color: "#06b6d4" },
-  { name: "Beginner", value: 2, color: "#3b82f6" },
-  { name: "Free", value: 1, color: "#6b7280" },
+// Full MRR history with actual dates for filtering
+const ALL_MRR_DATA = [
+  { month: "Sep", mrr: 8500,  date: new Date(2025, 8,  1) },
+  { month: "Oct", mrr: 11500, date: new Date(2025, 9,  1) },
+  { month: "Nov", mrr: 15000, date: new Date(2025, 10, 1) },
+  { month: "Dec", mrr: 15000, date: new Date(2025, 11, 1) },
+  { month: "Jan", mrr: 15000, date: new Date(2026, 0,  1) },
+  { month: "Feb", mrr: 15500, date: new Date(2026, 1,  1) },
 ];
 
-const revenueByMonth = [
-  { month: "Sep", mrr: 8500 },
-  { month: "Oct", mrr: 11500 },
-  { month: "Nov", mrr: 15000 },
-  { month: "Dec", mrr: 15000 },
-  { month: "Jan", mrr: 15000 },
-  { month: "Feb", mrr: 15500 },
+const packageDistribution = [
+  { name: "Advanced",     value: 1, color: "#8b5cf6" },
+  { name: "Intermediate", value: 2, color: "#06b6d4" },
+  { name: "Beginner",     value: 2, color: "#3b82f6" },
+  { name: "Free",         value: 1, color: "#6b7280" },
 ];
 
 function AdminOverviewPage() {
-  const totalMRR = mockFinancials.reduce((s, f) => s + f.mrr, 0);
-  const totalClients = mockClients.filter(c => c.role === "PAID_CLIENT").length;
+  const [dateRange, setDateRange] = useState<DateRange>(() => makeRange("6M"));
+
+  const totalMRR      = mockFinancials.reduce((s, f) => s + f.mrr, 0);
+  const totalClients  = mockClients.filter(c => c.role === "PAID_CLIENT").length;
   const criticalClients = mockClients.filter(c => c.healthStatus === "CRITICAL").length;
   const totalPipeline = mockFinancials.reduce((s, f) => s + f.totalPaid, 0);
+
+  // Filter MRR chart to selected period
+  const revenueByMonth = ALL_MRR_DATA.filter(
+    d => d.date >= dateRange.from && d.date <= dateRange.to
+  );
+
+  // Period label for subtitle
+  const fmtShort = (d: Date) =>
+    d.toLocaleDateString("en-MY", { month: "short", year: "2-digit" });
+  const periodLabel = revenueByMonth.length
+    ? `${fmtShort(revenueByMonth[0].date)} – ${fmtShort(revenueByMonth[revenueByMonth.length - 1].date)}`
+    : "No data in range";
+
+  // Period MRR growth
+  const firstMrr = revenueByMonth[0]?.mrr ?? totalMRR;
+  const lastMrr  = revenueByMonth[revenueByMonth.length - 1]?.mrr ?? totalMRR;
+  const mrrGrowth = firstMrr > 0 ? (((lastMrr - firstMrr) / firstMrr) * 100).toFixed(0) : "0";
 
   return (
     <div className="space-y-6 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">Admin Overview</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Agenz MY Internal · {mockClients.length} total accounts
+            Agenz MY Internal · {mockClients.length} total accounts · {periodLabel}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/admin/upgrade" className="flex items-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2563eb] transition-colors shadow-[0_0_16px_rgba(59,130,246,0.2)]">
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          <Link
+            href="/admin/upgrade"
+            className="flex items-center gap-2 rounded-xl bg-[#3b82f6] px-4 py-2 text-xs font-semibold text-white hover:bg-[#2563eb] transition-colors shadow-[0_0_16px_rgba(59,130,246,0.2)]"
+          >
             Upgrade Client <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -52,10 +78,10 @@ function AdminOverviewPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
-          { label: "Monthly Recurring", value: `RM ${(totalMRR / 1000).toFixed(1)}K`, sub: "MRR · Feb 2026", icon: DollarSign, color: "#10b981" },
-          { label: "Active Clients", value: totalClients, sub: "paid accounts", icon: Users, color: "#3b82f6" },
-          { label: "Critical Accounts", value: criticalClients, sub: "need intervention", icon: AlertTriangle, color: "#ef4444" },
-          { label: "Total Collected", value: `RM ${(totalPipeline / 1000).toFixed(0)}K`, sub: "all time", icon: TrendingUp, color: "#8b5cf6" },
+          { label: "Monthly Recurring", value: `RM ${(totalMRR / 1000).toFixed(1)}K`, sub: `MRR · ${fmtShort(dateRange.to)}`, icon: DollarSign, color: "#10b981" },
+          { label: "Active Clients",    value: totalClients,                            sub: "paid accounts",                   icon: Users,        color: "#3b82f6" },
+          { label: "Critical Accounts", value: criticalClients,                         sub: "need intervention",               icon: AlertTriangle, color: "#ef4444" },
+          { label: "MRR Growth",        value: `+${mrrGrowth}%`,                        sub: `over period`,                     icon: TrendingUp,   color: "#8b5cf6" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-2xl border border-border bg-card p-5 flex items-center gap-4">
             <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${stat.color}15` }}>
@@ -74,20 +100,32 @@ function AdminOverviewPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_300px]">
         {/* MRR Growth */}
         <div className="rounded-2xl border border-border bg-card p-5">
-          <h3 className="mb-4 text-sm font-semibold text-foreground">MRR Growth</h3>
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={revenueByMonth} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
-              <Tooltip formatter={(v) => v != null ? [`RM ${Number(v).toLocaleString()}`, "MRR"] : ["-", "MRR"]} contentStyle={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
-              <Bar dataKey="mrr" radius={[6, 6, 0, 0]}>
-                {revenueByMonth.map((_, i) => (
-                  <Cell key={i} fill={i === revenueByMonth.length - 1 ? "#3b82f6" : "#3b82f620"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-foreground">MRR Growth</h3>
+            <span className="text-[11px] text-muted-foreground">{periodLabel}</span>
+          </div>
+          {revenueByMonth.length === 0 ? (
+            <div className="flex h-[180px] items-center justify-center text-sm text-muted-foreground">
+              No data in selected period
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={revenueByMonth} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}K`} />
+                <Tooltip
+                  formatter={(v) => v != null ? [`RM ${Number(v).toLocaleString()}`, "MRR"] : ["-", "MRR"]}
+                  contentStyle={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
+                />
+                <Bar dataKey="mrr" radius={[6, 6, 0, 0]}>
+                  {revenueByMonth.map((_, i) => (
+                    <Cell key={i} fill={i === revenueByMonth.length - 1 ? "#3b82f6" : "#3b82f620"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* Package distribution */}
@@ -98,7 +136,10 @@ function AdminOverviewPage() {
               <Pie data={packageDistribution} cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3} dataKey="value">
                 {packageDistribution.map((e, i) => <Cell key={i} fill={e.color} />)}
               </Pie>
-              <Tooltip formatter={(v) => [v ?? "-", "clients"]} contentStyle={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }} />
+              <Tooltip
+                formatter={(v) => [v ?? "-", "clients"]}
+                contentStyle={{ background: "#111", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12 }}
+              />
             </PieChart>
           </ResponsiveContainer>
           <div className="mt-2 space-y-1.5">
@@ -135,12 +176,12 @@ function AdminOverviewPage() {
             <tbody>
               {mockClients.map(client => {
                 const healthConf = HEALTH_STATUS_CONFIG[client.healthStatus];
-                const pkgConf = PACKAGE_CONFIG[client.packageTier];
+                const pkgConf    = PACKAGE_CONFIG[client.packageTier];
                 return (
                   <tr key={client.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: `linear-gradient(135deg, #3b82f6, #8b5cf6)` }}>
+                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}>
                           {client.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                         </div>
                         <div>
@@ -150,9 +191,7 @@ function AdminOverviewPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-xs font-semibold" style={{ color: pkgConf.color }}>
-                        {pkgConf.label}
-                      </span>
+                      <span className="text-xs font-semibold" style={{ color: pkgConf.color }}>{pkgConf.label}</span>
                     </td>
                     <td className="px-4 py-3">
                       <div>
@@ -177,18 +216,15 @@ function AdminOverviewPage() {
                     <td className="px-4 py-3">
                       {client.healthStatus === "CRITICAL" ? (
                         <Link href="/admin/upgrade" className="flex items-center gap-1 text-[11px] font-semibold text-red-400 hover:text-red-300 transition-colors">
-                          <AlertTriangle className="h-3 w-3" />
-                          Intervene
+                          <AlertTriangle className="h-3 w-3" />Intervene
                         </Link>
                       ) : client.healthStatus === "WARNING" ? (
                         <Link href="/admin/upgrade" className="flex items-center gap-1 text-[11px] font-semibold text-orange-400 hover:text-orange-300 transition-colors">
-                          <Clock className="h-3 w-3" />
-                          Review
+                          <Clock className="h-3 w-3" />Review
                         </Link>
                       ) : (
                         <span className="flex items-center gap-1 text-[11px] text-emerald-400">
-                          <CheckCircle2 className="h-3 w-3" />
-                          On Track
+                          <CheckCircle2 className="h-3 w-3" />On Track
                         </span>
                       )}
                     </td>

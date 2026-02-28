@@ -10,6 +10,7 @@ import {
   Diamond, Calendar, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DateRangePicker, makeRange, type DateRange } from "@/components/ui/date-range-picker";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type TaskStatus = GanttTask["status"];
@@ -561,17 +562,15 @@ export default function GanttPage() {
   const [editingTask, setEditingTask] = useState<GanttTask | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [filterClient, setFilterClient] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<DateRange>(() => makeRange("ALL"));
 
-  // Compute date range across tasks + events
-  const taskDates = tasks.flatMap((t) => [new Date(t.startDate), new Date(t.endDate)]);
-  const eventDates = events.map((e) => new Date(e.date));
-  const allDates = [...taskDates, ...eventDates, new Date()];
-  const startDate = new Date(Math.min(...allDates.map((d) => d.getTime())));
-  const endDate = new Date(Math.max(...allDates.map((d) => d.getTime())));
-  // Pad by 7 days on each side
-  startDate.setDate(startDate.getDate() - 7);
-  endDate.setDate(endDate.getDate() + 14);
-  const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
+  // Use the selected date range as the visible timeline window
+  const startDate = new Date(dateRange.from);
+  const endDate   = new Date(dateRange.to);
+  const totalDays = Math.max(
+    1,
+    (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   // Month labels
   const months: { label: string; position: number }[] = [];
@@ -616,8 +615,16 @@ export default function GanttPage() {
     })),
   ];
 
-  const filteredTasks = filterClient === "all" ? tasks : tasks.filter((t) => t.clientId === filterClient);
-  const filteredEvents = filterClient === "all" ? events : events.filter((e) => e.clientId === filterClient);
+  const clientFiltered = filterClient === "all" ? tasks : tasks.filter((t) => t.clientId === filterClient);
+  const clientFilteredEvents = filterClient === "all" ? events : events.filter((e) => e.clientId === filterClient);
+
+  // Only show tasks/events that overlap the visible window
+  const filteredTasks = clientFiltered.filter(
+    (t) => new Date(t.startDate) <= endDate && new Date(t.endDate) >= startDate
+  );
+  const filteredEvents = clientFilteredEvents.filter(
+    (e) => new Date(e.date) >= startDate && new Date(e.date) <= endDate
+  );
 
   const summary = {
     completed: tasks.filter((t) => t.status === "COMPLETED").length,
@@ -633,11 +640,14 @@ export default function GanttPage() {
         <div>
           <h1 className="text-xl font-bold text-foreground">Gantt Chart</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {tasks.length} tasks · {events.length} events across {new Set(tasks.map((t) => t.clientId)).size} clients
+            {filteredTasks.length} tasks · {filteredEvents.length} events visible · {new Set(tasks.map((t) => t.clientId)).size} clients
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Date range picker */}
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
+
           {/* Client filter */}
           <select
             value={filterClient}

@@ -38,9 +38,25 @@ import {
 import { mockClients, revenueChartData, mockLeads, mockCampaigns, currentKPIs } from "@/lib/mock-data";
 import { PACKAGE_CONFIG } from "@/lib/constants";
 import Image from "next/image";
+import { DateRangePicker, makeRange, type DateRange } from "@/components/ui/date-range-picker";
+
+// Month date map for revenue chart filtering
+const ALL_REPORT_MONTHS = [
+  { month: "Sep", date: new Date(2025, 8,  1) },
+  { month: "Oct", date: new Date(2025, 9,  1) },
+  { month: "Nov", date: new Date(2025, 10, 1) },
+  { month: "Dec", date: new Date(2025, 11, 1) },
+  { month: "Jan", date: new Date(2026, 0,  1) },
+  { month: "Feb", date: new Date(2026, 1,  1) },
+];
+
+function fmtPeriod(from: Date, to: Date) {
+  const fmt = (d: Date) => d.toLocaleDateString("en-MY", { month: "short", year: "numeric" });
+  return `${fmt(from)} – ${fmt(to)}`;
+}
 
 // ─── Report data generator ──────────────────────────────────────────────────────
-function getReportData(clientId: string) {
+function getReportData(clientId: string, dateRange?: { from: Date; to: Date }) {
   const client = mockClients.find((c) => c.id === clientId)!;
   const tier = client.packageTier;
   const health = client.healthScore ?? 50;
@@ -60,7 +76,7 @@ function getReportData(clientId: string) {
   const prevCpl = Math.round(cpl * 1.45);
   const prevClose = Math.round(closeRate * 0.85);
 
-  const revenueChart = [
+  const ALL_MONTHS = [
     { month: "Sep", value: Math.round(prevRevenue * 0.7) },
     { month: "Oct", value: Math.round(prevRevenue * 0.8) },
     { month: "Nov", value: Math.round(prevRevenue * 0.9) },
@@ -68,6 +84,22 @@ function getReportData(clientId: string) {
     { month: "Jan", value: Math.round(revenue * 0.9) },
     { month: "Feb", value: revenue },
   ];
+
+  // Filter chart to the selected period
+  const revenueChart = dateRange
+    ? ALL_MONTHS.filter((_, i) => {
+        const d = ALL_REPORT_MONTHS[i].date;
+        return d >= dateRange.from && d <= dateRange.to;
+      })
+    : ALL_MONTHS;
+
+  // Build period label
+  const visibleMonths = dateRange
+    ? ALL_REPORT_MONTHS.filter(m => m.date >= dateRange.from && m.date <= dateRange.to)
+    : ALL_REPORT_MONTHS;
+  const period = visibleMonths.length
+    ? fmtPeriod(visibleMonths[0].date, visibleMonths[visibleMonths.length - 1].date)
+    : "Feb 2026";
 
   const campaigns = [
     { name: "Facebook", spend: Math.round(adSpend * 0.4), leads: Math.round(leads * 0.45), roas: parseFloat((roas * 0.9).toFixed(1)) },
@@ -109,6 +141,7 @@ function getReportData(clientId: string) {
     leads, cpl, closeRate, roas, adSpend, revenue,
     prevRevenue, prevLeads, prevCpl, prevClose,
     revenueChart, campaigns, pipelineCounts, modulePerf, constraint, actions,
+    period,
   };
 }
 
@@ -168,7 +201,7 @@ function CoverSlide({ data }: { data: ReturnType<typeof getReportData> }) {
           <div className="flex justify-center gap-10">
             {[
               { label: "PACKAGE", value: pkg?.label ?? client.packageTier },
-              { label: "REPORT PERIOD", value: "Feb 2026" },
+              { label: "REPORT PERIOD", value: data.period },
               { label: "MODULES", value: `${client.activeModules.length} Active` },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
@@ -182,7 +215,7 @@ function CoverSlide({ data }: { data: ReturnType<typeof getReportData> }) {
         {/* Footer */}
         <div className="flex items-center justify-between">
           <p className="text-[10px] text-white/20">Prepared by Agenz MY · agenz.my</p>
-          <p className="text-[10px] text-white/20">Confidential · February 2026</p>
+          <p className="text-[10px] text-white/20">Confidential · {data.period}</p>
         </div>
 
         {/* Decorative glow */}
@@ -592,20 +625,28 @@ function ActionPlanSlide({ data }: { data: ReturnType<typeof getReportData> }) {
 }
 
 // ─── Agency Overview Report ──────────────────────────────────────────────────
-function AgencyReportSlide({ slideIndex }: { slideIndex: number }) {
+function AgencyReportSlide({ slideIndex, dateRange }: { slideIndex: number; dateRange: DateRange }) {
   const clients = mockClients.filter((c) => c.packageTier !== "NONE");
   const totalMRR = clients.reduce((s, c) => s + (PACKAGE_CONFIG[c.packageTier]?.price ?? 0), 0);
   const avgHealth = Math.round(clients.reduce((s, c) => s + (c.healthScore ?? 50), 0) / clients.length);
   const criticalCount = clients.filter((c) => (c.healthScore ?? 100) < 60).length;
 
-  const mrrByMonth = [
-    { month: "Sep", value: 11200 },
-    { month: "Oct", value: 12500 },
-    { month: "Nov", value: 13000 },
-    { month: "Dec", value: 13800 },
-    { month: "Jan", value: 14200 },
-    { month: "Feb", value: totalMRR },
+  const ALL_AGENCY_MRR = [
+    { month: "Sep", value: 11200, date: new Date(2025, 8,  1) },
+    { month: "Oct", value: 12500, date: new Date(2025, 9,  1) },
+    { month: "Nov", value: 13000, date: new Date(2025, 10, 1) },
+    { month: "Dec", value: 13800, date: new Date(2025, 11, 1) },
+    { month: "Jan", value: 14200, date: new Date(2026, 0,  1) },
+    { month: "Feb", value: totalMRR, date: new Date(2026, 1, 1) },
   ];
+
+  const mrrByMonth = ALL_AGENCY_MRR.filter(
+    m => m.date >= dateRange.from && m.date <= dateRange.to
+  );
+
+  const period = mrrByMonth.length
+    ? fmtPeriod(mrrByMonth[0].date, mrrByMonth[mrrByMonth.length - 1].date)
+    : "Feb 2026";
 
   const slides = [
     // Agency cover
@@ -620,7 +661,7 @@ function AgencyReportSlide({ slideIndex }: { slideIndex: number }) {
         <div className="text-center space-y-4">
           <p className="text-[10px] font-semibold tracking-[0.3em] text-[#3b82f6] uppercase">INTERNAL AGENCY REPORT</p>
           <h1 className="text-5xl font-black text-white">Agenz MY</h1>
-          <p className="text-white/40">February 2026 · Confidential</p>
+          <p className="text-white/40">{period} · Confidential</p>
           <div className="flex justify-center gap-8 mt-4">
             {[
               { label: "MRR", value: `RM ${totalMRR.toLocaleString()}` },
@@ -736,13 +777,14 @@ export default function ReportsPage() {
   const [mode, setMode] = useState<"agency" | "client">("agency");
   const [selectedClientId, setSelectedClientId] = useState(activeClients[0]?.id ?? "c1");
   const [slideIndex, setSlideIndex] = useState(0);
+  const [dateRange, setDateRange] = useState<DateRange>(() => makeRange("3M"));
 
   const totalSlides = mode === "agency" ? TOTAL_AGENCY_SLIDES : TOTAL_CLIENT_SLIDES;
 
   const prev = () => setSlideIndex((s) => Math.max(0, s - 1));
   const next = () => setSlideIndex((s) => Math.min(totalSlides - 1, s + 1));
 
-  const reportData = getReportData(selectedClientId);
+  const reportData = getReportData(selectedClientId, dateRange);
 
   const clientSlides = [
     <CoverSlide key="cover" data={reportData} />,
@@ -763,13 +805,15 @@ export default function ReportsPage() {
   return (
     <div className="p-5 space-y-4 max-w-[960px] mx-auto">
       {/* Header controls */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">Performance Reports</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Auto-generated from live client data</p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Date range picker */}
+          <DateRangePicker value={dateRange} onChange={(r) => { setDateRange(r); setSlideIndex(0); }} />
           {/* Mode toggle */}
           <div className="flex rounded-xl border border-border overflow-hidden">
             {(["agency", "client"] as const).map((m) => (
@@ -830,7 +874,7 @@ export default function ReportsPage() {
       {/* Slide */}
       <div className="relative">
         {mode === "agency"
-          ? <AgencyReportSlide slideIndex={slideIndex} />
+          ? <AgencyReportSlide slideIndex={slideIndex} dateRange={dateRange} />
           : clientSlides[slideIndex]
         }
       </div>
