@@ -19,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { DateRangePicker, makeRange, type DateRange } from "@/components/ui/date-range-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -324,8 +325,13 @@ export default function CRMPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [panelLead, setPanelLead] = useState<Lead | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>(() => makeRange("ALL"));
 
   const sources = Array.from(new Set(leads.map((l) => l.source)));
+
+  // Derive "last active date" from daysInStage — used for timeline filtering
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
 
   const filteredLeads = leads.filter((l) => {
     const matchSearch =
@@ -333,7 +339,10 @@ export default function CRMPage() {
       l.name.toLowerCase().includes(search.toLowerCase()) ||
       l.company.toLowerCase().includes(search.toLowerCase());
     const matchSource = filterSource === "all" || l.source === filterSource;
-    return matchSearch && matchSource;
+    // Lead "last active" date: today minus daysInStage
+    const lastActive = new Date(now.getTime() - l.daysInStage * 86_400_000);
+    const matchDate = lastActive >= dateRange.from && lastActive <= dateRange.to;
+    return matchSearch && matchSource && matchDate;
   });
 
   const activeLead = leads.find((l) => l.id === activeId) ?? null;
@@ -379,13 +388,13 @@ export default function CRMPage() {
   return (
     <div className="flex flex-col gap-5 max-w-full">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">Pipeline</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {leads.filter((l) => l.stage !== "LOST").length} active leads ·{" "}
+            {filteredLeads.filter((l) => l.stage !== "LOST").length} active leads ·{" "}
             <span className="text-[#3b82f6] font-medium">
-              RM {(totalPipelineValue / 1000).toFixed(0)}K pipeline
+              RM {(filteredLeads.reduce((s, l) => s + l.dealValue, 0) / 1000).toFixed(0)}K pipeline
             </span>
             {staleLeads.length > 0 && (
               <span className="ml-2 text-orange-400 font-medium">
@@ -394,33 +403,36 @@ export default function CRMPage() {
             )}
           </p>
         </div>
-        <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl gap-2 shadow-[0_0_16px_rgba(59,130,246,0.2)]">
-          <Plus className="h-4 w-4" />
-          Add Lead
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <DateRangePicker value={dateRange} onChange={setDateRange} />
+          <Button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white rounded-xl gap-2 shadow-[0_0_16px_rgba(59,130,246,0.2)]">
+            <Plus className="h-4 w-4" />
+            Add Lead
+          </Button>
+        </div>
       </div>
 
       {/* Stats bar */}
       <div className="grid grid-cols-4 gap-3">
         {[
           {
-            label: "Total Leads",
-            value: leads.filter((l) => l.stage !== "LOST").length,
+            label: "Filtered Leads",
+            value: filteredLeads.filter((l) => l.stage !== "LOST").length,
             color: "#3b82f6",
           },
           {
             label: "Pipeline Value",
-            value: `RM ${(totalPipelineValue / 1000).toFixed(0)}K`,
+            value: `RM ${(filteredLeads.reduce((s, l) => s + l.dealValue, 0) / 1000).toFixed(0)}K`,
             color: "#06b6d4",
           },
           {
-            label: "Won This Month",
-            value: `RM ${(wonValue / 1000).toFixed(0)}K`,
+            label: "Won Value",
+            value: `RM ${(filteredLeads.filter((l) => l.stage === "WON").reduce((s, l) => s + l.dealValue, 0) / 1000).toFixed(0)}K`,
             color: "#10b981",
           },
           {
             label: "Stale Leads",
-            value: staleLeads.length,
+            value: filteredLeads.filter((l) => l.daysInStage > 14 && l.stage !== "WON" && l.stage !== "LOST").length,
             color: staleLeads.length > 0 ? "#f97316" : "#10b981",
           },
         ].map((stat) => (
