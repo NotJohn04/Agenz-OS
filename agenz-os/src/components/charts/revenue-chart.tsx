@@ -12,6 +12,7 @@ import {
   Legend,
 } from "recharts";
 import { revenueChartData } from "@/lib/mock-data";
+import type { RevenueData } from "@/types";
 
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
@@ -37,13 +38,14 @@ const CustomTooltip = ({ active, payload, label }: {
   return null;
 };
 
-export function RevenueChart() {
+export function RevenueChart({ data, period }: { data?: RevenueData[]; period?: string } = {}) {
+  const chartData = data && data.length > 0 ? data : revenueChartData;
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Revenue vs Baseline</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Last 7 months · RM</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{period ?? `Last ${chartData.length} months`} · RM</p>
         </div>
         <div className="flex items-center gap-4 text-[11px]">
           <span className="flex items-center gap-1.5">
@@ -62,7 +64,7 @@ export function RevenueChart() {
       </div>
 
       <ResponsiveContainer width="100%" height={220}>
-        <AreaChart data={revenueChartData} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
+        <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
           <defs>
             <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
